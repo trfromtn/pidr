@@ -1,0 +1,4 @@
+test/
+shell.nix
+__pycache__/
+.vscode/
