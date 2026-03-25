@@ -1,7 +1,11 @@
 from fastapi import FastAPI, Form
 from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
+
+# Serve static files from apy/resources directory
+app.mount("/resources", StaticFiles(directory="apy/resources"), name="resources")
 
 
 @app.get("/")
