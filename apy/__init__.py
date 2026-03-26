@@ -1,14 +1,11 @@
 from fastapi import FastAPI, Form
 from fastapi.responses import FileResponse, RedirectResponse
-import jinja2 as ji
-
-from .matlabEngine import engine
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 
-env = ji.Environment(loader=ji.FileSystemLoader("apy/templates"))
-template = env.get_template("tuto.jinja")
-
+# Serve static files from apy/resources directory
+app.mount("/resources", StaticFiles(directory="apy/resources"), name="resources")
 
 
 @app.get("/")
