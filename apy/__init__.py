@@ -1,8 +1,8 @@
 
-from .matlabEngine import engine 
+from . import matlabEngine
 
 from fastapi import FastAPI, Form, Request
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
@@ -20,30 +20,35 @@ async def lyophilisation():
     return FileResponse("apy/resources/lyophilisation.html")
 
 
-@app.post("/lyophilisation/simulate")
-async def simulate(Tshelf: str = Form()):
-    Tshelf = float(Tshelf)
-    return {
-        "Tshelf": Tshelf,
-        'matlab response': list(engine.basic_func(Tshelf)[0])
-    }
 
 @app.post("/lyophilisation/array")
 async def array(request: Request):
-    body = await request.json()
-    data = body.get('data')
-    print(type(data), data)
-    processed_data = [ [ ((i * x) if x is not None else None) for x in d] for i,d in enumerate(data)]
+    debug = True
+
+    data: dict[str, list[int]] = await request.json()
+    if debug: print(type(data), data)
+    d = data.get("data")
+    if debug: print(type(d), d)
+    processed_data = matlabEngine.process(d)
+    if debug: print(type(processed_data), processed_data)
     return {
         "received_data": processed_data,
         "status": "success"
     }
 
+# @app.post("/lyophilisation/simulate")
+# async def simulate(Tshelf: str = Form()):
+#     Tshelf = float(Tshelf)
+#     return {
+#         "Tshelf": Tshelf,
+#         'matlab response': list(engine.basic_func(Tshelf)[0])
+#     }
 
 @app.get("/matlab")
 async def matlab():
+    """matlab information for debug"""
     return {
-        "current dir": engine.cd(),
-        "PATH": engine.path()
+        "current dir": matlabEngine.engine.cd(),
+        "PATH": matlabEngine.engine.path()
     }
 

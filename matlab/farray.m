@@ -1,6 +1,10 @@
 function output = farray(input)
 
-    output.T = 2*input.Ts;
+    Ts = input(:,1)
+    Qw = input(:,2)
+
+    output.T = 2 * Ts + Qw;
+
 
 
 end
