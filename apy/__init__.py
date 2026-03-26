@@ -1,4 +1,7 @@
-from fastapi import FastAPI, Form
+
+from .matlabEngine import engine 
+
+from fastapi import FastAPI, Form, Request
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -25,6 +28,17 @@ async def simulate(Tshelf: str = Form()):
         'matlab response': list(engine.basic_func(Tshelf)[0])
     }
 
+@app.post("/lyophilisation/array")
+async def array(request: Request):
+    body = await request.json()
+    data = body.get('data')
+    print(type(data), data)
+    processed_data = [ [ ((i * x) if x is not None else None) for x in d] for i,d in enumerate(data)]
+    return {
+        "received_data": processed_data,
+        "status": "success"
+    }
+
 
 @app.get("/matlab")
 async def matlab():
@@ -33,6 +47,3 @@ async def matlab():
         "PATH": engine.path()
     }
 
-@app.get("/test")
-async def test(name = None):
-    return template.render(nom = name)
