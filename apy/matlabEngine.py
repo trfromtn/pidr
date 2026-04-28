@@ -1,12 +1,13 @@
 import matlab.engine
 
 engine = matlab.engine.start_matlab()
-engine.addpath("matlab")
 
 
 def process(data):
     # Convert nested Python 2D list to MATLAB struct
     # Assuming first column is Ts and second column is Qw
+    engine.addpath("matlab")
+
 
     Ts = [[row[0] if len(row) > 0 else 0 for row in data]]
     print(Ts)
@@ -26,3 +27,17 @@ def process(data):
         print("val", val, result[key])
     
     return result
+
+
+def lyo(data):
+    # get a list of the rows (in lists)
+    print("matlabEngine.lyo called")
+    engine.addpath("matlab")
+
+
+    output = engine.lyo_process(matlab.double(data))
+
+    # print("===================output================")
+    print("OUTPUT", output)
+
+    return output

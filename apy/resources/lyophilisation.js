@@ -1,112 +1,140 @@
-const data = [
-    ["", ""]
-];
+// Initialize Handsontable with Temperature and Power columns
+let hot; // Global reference to the Handsontable instance
+let hotResults; // Global reference for results table
 
-// Configuration des colonnes (noms et types)
-const columns = [
-    { title: "Temperature Shelf", type: 'numeric' },
-    { title: "QW", type: 'numeric' },
-];
-
-// Initialisation du tableur
-const hot = new Handsontable(document.getElementById('table'), {
-    data: data,
-    columns: columns,
-    rowHeaders: true,
-    colHeaders: true,
-    stretchH: 'all',
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation', // Clé pour usage non commercial
-    contextMenu: true,
-    manualRowResize: false,
-    manualColumnResize: true,
-    outsideClickDeselects: false,
-});
-
-// Initialisation de la table de résultats
-let resultsHot = null;
-
-function initializeResultsTable(resultsData) {
-    if (resultsHot) {
-        resultsHot.destroy();
-    }
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('handson-container');
     
-    const keys = Object.keys(resultsData);
-    const resultColumns = keys.map(key => ({
-        title: key,
-        type: 'numeric'
-    }));
-    
-    // Transposer le dictionnaire de listes en liste de lignes
-    const listLength = keys.length > 0 ? resultsData[keys[0]].length : 0;
-    const tableData = [];
-    for (let i = 0; i < listLength; i++) {
-        const row = keys.map(key => resultsData[key][i]);
-        tableData.push(row);
-    }
-    
-    resultsHot = new Handsontable(document.getElementById('results-table'), {
-        data: tableData,
-        columns: resultColumns,
+    hot = new Handsontable(container, {
+        data: [
+        ],
+        columns: [
+            {
+                data: 'temperature',
+                title: 'Temperature (°C)',
+                type: 'numeric',
+            },
+            {
+                data: 'power',
+                title: 'Power (W)',
+                type: 'numeric',
+            }
+        ],
         rowHeaders: true,
         colHeaders: true,
-        stretchH: 'all',
         height: 'auto',
-        licenseKey: 'non-commercial-and-evaluation',
-        contextMenu: true,
-        manualRowResize: false,
-        manualColumnResize: true,
-        outsideClickDeselects: false,
-        readOnly: true,
-    });
-}
-
-// // Fonction pour coller des données depuis un tableur
-// function pasteData() {
-//     navigator.clipboard.readText().then(text => {
-//     const rows = text.split('\n');
-//     const tableData = rows.map(row => row.split('\t'));
-//     hot.loadData(tableData);
-//     }).catch(err => {
-//     console.error('Erreur lors du collage : ', err);
-//     alert("Impossible d'accéder au presse-papiers. Utilise Ctrl+V directement dans le tableur.");
-//     });
-// }
-
-// Fonction pour envoyer les données à l'API
-function sendData() {
-    // // const tableData = hot.getData();
-    // const Temperature = hot.getDataAtCol(0);
-    // const col1 = hot.getDataAtCol(1);
-
-    
-    fetch('/lyophilisation/array', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
+        minRows: 1,
+        stretchH: 'all',
+        dropdownMenu: ['copy', 'cut', 'paste'],
+        contextMenu: ['copy', 'cut', 'paste'],
+        copyPaste: {
+            pasteMode: 'overwrite'
         },
-        body: JSON.stringify({ data: hot.getData()})
-        //     Ts: Temperature, 
-        //     Qw: col1
-        // }})
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`Erreur HTTP: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log('Succès:', data);
-        if (data.received_data) {
-            initializeResultsTable(data.received_data);
-            // alert('Données envoyées et résultats reçus avec succès');
-            console.log("Data reçue correctement affichée")
-        }
-    })
-    .catch(error => {
-        console.error('Erreur lors de l\'envoi:', error);
-        alert('Erreur lors de l\'envoi des données');
+        licenseKey: 'non-commercial-and-evaluation'
     });
+
+    // Add Process button event listener
+    document.getElementById('processBtn').addEventListener('click', processData);
+});
+
+async function processData() {
+    try {
+        // Get data from Handsontable
+        const tableData = hot.getData();
+        
+        // Filter out empty rows
+        const validData = tableData.filter(row => row[0] !== null && row[0] !== undefined && row[1] !== null && row[1] !== undefined);
+        
+        // if (validData.length === 0) {
+        //     alert('Please enter at least one row of data');
+        //     return;
+        // }
+
+        // Convert to array format for the backend
+        const payload = {
+            data: validData
+        };
+
+        // Send POST request to /lyophilisation/array endpoint
+        const response = await fetch('/lyophilisation/array', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        displayResult(result);
+
+    } catch (error) {
+        console.error('Error processing data:', error);
+        displayResult({
+            status: 'error',
+            message: error.message
+        });
+    }
 }
 
+function displayResult(result) {
+    // const statusDiv = document.getElementById('result-status');
+    const resultContainer = document.getElementById('result-container');
+    
+    if (result.status === 'success') {
+        // statusDiv.className = 'result-status success';
+        // statusDiv.innerHTML = '<strong>✓ Success!</strong> Data processed successfully.';
+        // statusDiv.style.display = 'block';
+        
+        // Prepare data for the results table
+        const resultData = result.received_data;
+        
+        // Determine columns dynamically from the data
+        let columns = [];
+        if (Array.isArray(resultData) && resultData.length > 0) {
+            if (Array.isArray(resultData[0])) {
+                // If data is an array of arrays, use generic column names
+                const firstRow = resultData[0];
+                columns = firstRow.map((_, index) => ({
+                    title: `Column ${index + 1}`,
+                    type: 'numeric'
+                }));
+            } else if (typeof resultData[0] === 'object') {
+                // If data is an array of objects, use the keys as column titles
+                columns = Object.keys(resultData[0]).map(key => ({
+                    data: key,
+                    title: key,
+                    type: 'numeric'
+                }));
+            }
+        }
+        
+        // Create or update results table
+        if (hotResults) {
+            hotResults.destroy();
+        }
+        
+        hotResults = new Handsontable(resultContainer, {
+            data: resultData,
+            columns: columns,
+            rowHeaders: true,
+            colHeaders: true,
+            height: 'auto',
+            stretchH: 'all',
+            readOnly: true,
+            licenseKey: 'non-commercial-and-evaluation'
+        });
+        
+    } else {
+        // statusDiv.className = 'result-status error';
+        // statusDiv.innerHTML = `<strong>✗ Error:</strong> ${result.message || 'Unknown error occurred'}`;
+        // statusDiv.style.display = 'block';
+        resultContainer.innerHTML = '';
+        if (hotResults) {
+            hotResults.destroy();
+        }
+    }
+}
