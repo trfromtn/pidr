@@ -31,11 +31,14 @@ async def array(request: Request):
 
 
     data: dict[str, list[int]] = await request.json()
-    if debug: print("DATA", type(data), data)
+    if debug: print("================ DATA", type(data), data)
     d = data.get("data")
-    if debug: print("D", type(d), d)
+    if debug: print("================ D", type(d), d)
     processed_data = matlabEngine.lyo(d)
-    if debug: print("PROCESSED", type(processed_data), processed_data)
+    if debug: print("================ PROCESSED", type(processed_data)) # way too long
+
+    
+
     return {
         "received_data": processed_data,
         "status": "success"

@@ -23,12 +23,19 @@ document.addEventListener('DOMContentLoaded', function() {
         rowHeaders: true,
         colHeaders: true,
         height: 'auto',
-        minRows: 1,
+        minSpareRows: 5,
         stretchH: 'all',
         dropdownMenu: ['copy', 'cut', 'paste'],
         contextMenu: ['copy', 'cut', 'paste'],
         copyPaste: {
             pasteMode: 'overwrite'
+        },
+        afterPaste: function(changes, source) {
+            // Auto-adjust rows after pasting
+            const lastRow = Math.max(...changes.map(change => change[0]));
+            if (lastRow > this.countRows() - 3) {
+                this.alter('insert_row', this.countRows(), 10);
+            }
         },
         licenseKey: 'non-commercial-and-evaluation'
     });

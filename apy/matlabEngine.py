@@ -1,4 +1,7 @@
+## this module is used by the server API to call matlab functions (in ../matlab dir)
+
 import matlab.engine
+import numpy
 
 engine = matlab.engine.start_matlab()
 
@@ -19,10 +22,10 @@ def process(data):
 
     # matlab_data = matlab.dictionary(python_data)
     
-    processed_data = engine.farray(matlab.double(data))
-    print(processed_data)
+    output = engine.farray(matlab.double(data))
+    print(output)
     result = dict()
-    for key, val in processed_data.items():
+    for key, val in output.items():
         result[key] = list(x[0] for x in val)
         print("val", val, result[key])
     
@@ -31,13 +34,39 @@ def process(data):
 
 def lyo(data):
     # get a list of the rows (in lists)
-    print("matlabEngine.lyo called")
+    print("+++++++++++++ matlabEngine.lyo called")
+
     engine.addpath("matlab")
 
 
-    output = engine.lyo_process(matlab.double(data))
+    input = matlab.double(data)
+    print("+++++++++++++ conversion ok", input)
 
-    # print("===================output================")
-    print("OUTPUT", output)
 
+    output = engine.lyo_process(input)
+    print("++++++++++++ OUTPUT ok ")
+
+    for key in output:
+        o = output[key]
+        if isinstance(o, matlab.double):
+            output[key] = numpy.array(o)
+        else:
+            output[key] = (
+                [numpy.array([x[0] for x in d]) for d in o]
+            )
+            print("%%%%%%%%%%%%%%%%", len(o))
+            # print([engine.size(x) for x in o])
+
+        # print(key, type(output[key]), len(output[key]), output[key][:min(3, len(output[key]))])
+
+
+    # for key in output:
+    #     try: 
+    #         output[key] = numpy.array(output[key])
+    #     except:
+    #         print("++++++++++ERROR+++++++++", type(output[key]), [(type(x), len(x)) for x in output[key]])
+    #         output[key] = numpy.array([])
+    # print("+++++++++++++ back conversion ok")
+
+    
     return output
