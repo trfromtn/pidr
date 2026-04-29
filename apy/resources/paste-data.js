@@ -215,9 +215,93 @@ async function pasteFromClipboard() {
     }
 }
 
+// Handle Ctrl+V paste event
+async function handlePaste(event) {
+    try {
+        // Prevent default paste behavior
+        event.preventDefault();
+        
+        // Get clipboard data
+        const text = await navigator.clipboard.readText();
+        console.log('Pasted from clipboard via Ctrl+V:', text);
+        
+        parseAndLoadData(text);
+    } catch (error) {
+        console.error('Error reading from clipboard:', error);
+        if (error.name === 'NotAllowedError') {
+            alert('Clipboard access denied. Please allow clipboard access in browser permissions.');
+        } else {
+            alert('Error reading clipboard: ' + error.message);
+        }
+    }
+}
+
 function clearTable() {
     document.getElementById('pasteArea').value = '';
     initializeGrid([]);
+}
+
+async function processData() {
+    if (gridData.length === 0) {
+        alert('No data to process. Please paste data first.');
+        return;
+    }
+    
+    try {
+        console.log('Sending data to server for processing:', gridData);
+        
+        // Convert to 2D array of numbers (assumes numeric data)
+        const numericData = gridData.map(row => 
+            row.map(cell => {
+                const num = parseFloat(cell);
+                return isNaN(num) ? 0 : num;
+            })
+        );
+        
+        const response = await fetch('/lyophilisation/array', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ data: numericData })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        console.log('Processing result:', result);
+        
+        displayResults(result);
+    } catch (error) {
+        console.error('Error processing data:', error);
+        alert('Error processing data: ' + error.message);
+    }
+}
+
+function displayResults(result) {
+    const resultsSection = document.getElementById('resultsSection');
+    const resultsContent = document.getElementById('resultsContent');
+    
+    // Format the results nicely
+    let output = 'Status: ' + result.status + '\n\n';
+    
+    if (result.received_data) {
+        output += 'Received Data:\n';
+        output += JSON.stringify(result.received_data, null, 2);
+    }
+    
+    resultsContent.textContent = output;
+    resultsSection.style.display = 'block';
+    
+    // Scroll to results
+    resultsSection.scrollIntoView({ behavior: 'smooth' });
+}
+
+function clearResults() {
+    document.getElementById('resultsSection').style.display = 'none';
+    document.getElementById('resultsContent').textContent = '';
 }
 
 // Initialize empty grid on page load
@@ -225,4 +309,8 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM Content Loaded');
     console.log('window.GlideDataGrid:', window.GlideDataGrid);
     initializeGrid();
+    
+    // Listen for paste events
+    document.addEventListener('paste', handlePaste);
+    console.log('Paste event listener attached - use Ctrl+V to paste from Excel');
 });

@@ -118,6 +118,17 @@
             <h2>Step 2: Edit in the table below</h2>
             <div id="gridContainer"></div>
         </div>
+        
+        <div class="section">
+            <button onclick="processData()" style="background-color: #FF9800;">⚙️ Process Data</button>
+            <p class="info-text">Click to send the data to the server for processing</p>
+        </div>
+        
+        <div class="section" id="resultsSection" style="display: none;">
+            <h2>Processing Results</h2>
+            <pre id="resultsContent" style="background-color: #f0f0f0; padding: 15px; border-radius: 4px; overflow-x: auto;"></pre>
+            <button onclick="clearResults()" class="secondary">Clear Results</button>
+        </div>
     </div>
 
     <!-- Glide Data Grid JS -->
