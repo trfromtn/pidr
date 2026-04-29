@@ -17,8 +17,16 @@ function output = lyo_process(input)
     % output.t = tr;
     % output.s = ss;
 
+    aas = SSA2AAS(results);
 
-    output = SSA2AAS(results);
+
+    output.freeze__T__0 = aas.freeze__T(1,:);
+    output.freeze__T__mid = aas.freeze__T(round(length(aas.freeze__T)/2), :);
+    % output = aas;
+
+    % output.a = [4 5 6];
+    % output.b = [6; 7];
+    % output
 
 end
 

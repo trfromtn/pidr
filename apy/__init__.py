@@ -37,7 +37,7 @@ async def array(request: Request):
     d = data.get("data")
     if debug: print("================ D", type(d), d)
     processed_data = matlabEngine.lyo(d)
-    if debug: print("================ PROCESSED", type(processed_data)) # way too long
+    if debug: print("================ PROCESSED", type(processed_data), processed_data) # way too long
 
     
 

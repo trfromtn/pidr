@@ -46,10 +46,16 @@ def lyo(data):
     output = engine.lyo_process(input)
     print("++++++++++++ OUTPUT ok ")
 
+    # here output is supposed to be a dict of matlab double
+
+
+
     for key in output:
+        print(key)
         o = output[key]
         if isinstance(o, matlab.double):
-            output[key] = numpy.array(o)
+            output[key] = list(o[0])
+
         else:
             output[key] = (
                 [numpy.array([x[0] for x in d]) for d in o]
