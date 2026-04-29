@@ -10,8 +10,8 @@ app = FastAPI()
 
 # Serve static files from apy/resources directory
 app.mount("/resources", StaticFiles(directory="apy/resources"), name="resources")
-# # Serve node_modules for local npm packages
-# app.mount("/node_modules", StaticFiles(directory="node_modules"), name="node_modules")
+# Serve node_modules for local npm packages
+app.mount("/node_modules", StaticFiles(directory="node_modules"), name="node_modules")
 
 
 @app.get("/")
@@ -22,7 +22,9 @@ async def root():
 async def lyophilisation():
     return FileResponse("apy/resources/lyophilisation.html")
 
-
+@app.get("/paste-data")
+async def paste_data():
+    return FileResponse("apy/resources/paste-data.html")
 
 @app.post("/lyophilisation/array")
 async def array(request: Request):
