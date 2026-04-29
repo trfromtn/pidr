@@ -284,6 +284,12 @@ function displayResults(result) {
     const resultsSection = document.getElementById('resultsSection');
     const resultsContent = document.getElementById('resultsContent');
     
+    // Clear any previous table
+    const previousTable = resultsSection.querySelector('table');
+    if (previousTable) {
+        previousTable.remove();
+    }
+    
     // Format the results nicely
     let output = 'Status: ' + result.status + '\n\n';
     
@@ -295,13 +301,86 @@ function displayResults(result) {
     resultsContent.textContent = output;
     resultsSection.style.display = 'block';
     
+    // Display as table if received_data is a dict of lists
+    if (result.received_data && typeof result.received_data === 'object' && !Array.isArray(result.received_data)) {
+        displayDataTable(result.received_data, resultsContent);
+    }
+    
     // Scroll to results
     resultsSection.scrollIntoView({ behavior: 'smooth' });
 }
 
+function displayDataTable(dataDict, insertAfter) {
+    // Convert dict of lists to table format
+    // e.g., {'Ts': [1, 2, 3], 'Qw': [4, 5, 6]} becomes a table with columns Ts, Qw
+    
+    const keys = Object.keys(dataDict);
+    if (keys.length === 0) {
+        return;
+    }
+    
+    // Get the max length of all lists
+    const maxLength = Math.max(...keys.map(key => {
+        const arr = dataDict[key];
+        return Array.isArray(arr) ? arr.length : 0;
+    }));
+    
+    if (maxLength === 0) {
+        return;
+    }
+    
+    // Create table
+    let tableHtml = '<h3>Results Table</h3>';
+    tableHtml += '<table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px;">';
+    
+    // Header row
+    tableHtml += '<thead style="background-color: #e0e0e0;">';
+    tableHtml += '<tr>';
+    keys.forEach(key => {
+        tableHtml += `<th style="border: 1px solid #999; padding: 10px; text-align: left; font-weight: bold;">${key}</th>`;
+    });
+    tableHtml += '</tr>';
+    tableHtml += '</thead>';
+    
+    // Data rows
+    tableHtml += '<tbody>';
+    for (let i = 0; i < maxLength; i++) {
+        tableHtml += '<tr>';
+        keys.forEach(key => {
+            const arr = dataDict[key];
+            const value = Array.isArray(arr) && i < arr.length ? arr[i] : '';
+            // Format numbers to 6 decimal places if they're numeric
+            let displayValue = value;
+            if (typeof value === 'number') {
+                displayValue = value.toFixed(6);
+            }
+            tableHtml += `<td style="border: 1px solid #ddd; padding: 8px;">${displayValue}</td>`;
+        });
+        tableHtml += '</tr>';
+    }
+    tableHtml += '</tbody>';
+    tableHtml += '</table>';
+    
+    // Insert table after the pre element
+    insertAfter.insertAdjacentHTML('afterend', tableHtml);
+}
+
 function clearResults() {
-    document.getElementById('resultsSection').style.display = 'none';
-    document.getElementById('resultsContent').textContent = '';
+    const resultsSection = document.getElementById('resultsSection');
+    const resultsContent = document.getElementById('resultsContent');
+    
+    resultsSection.style.display = 'none';
+    resultsContent.textContent = '';
+    
+    // Remove any appended tables
+    const table = resultsSection.querySelector('table');
+    if (table) {
+        table.remove();
+    }
+    const heading = resultsSection.querySelector('h3');
+    if (heading) {
+        heading.remove();
+    }
 }
 
 // Initialize empty grid on page load
