@@ -237,7 +237,6 @@ async function handlePaste(event) {
 }
 
 function clearTable() {
-    document.getElementById('pasteArea').value = '';
     initializeGrid([]);
 }
 
@@ -246,6 +245,12 @@ async function processData() {
         alert('No data to process. Please paste data first.');
         return;
     }
+    
+    // Get the process button and show loading state
+    const processBtn = document.querySelector('button[onclick="processData()"]');
+    const originalText = processBtn.textContent;
+    processBtn.disabled = true;
+    processBtn.textContent = 'Simulation en cours...';
     
     try {
         console.log('Sending data to server for processing:', gridData);
@@ -273,9 +278,26 @@ async function processData() {
         const result = await response.json();
         console.log('Processing result:', result);
         
+        processBtn.textContent = originalText;
+        processBtn.style.backgroundColor = '';
+        processBtn.disabled = false;
+        
+        
         displayResults(result);
     } catch (error) {
         console.error('Error processing data:', error);
+        
+        // Show error state
+        processBtn.textContent = '✗ Erreur!';
+        processBtn.style.backgroundColor = '#f44336';
+        
+        // Reset button after 2 seconds
+        setTimeout(() => {
+            processBtn.textContent = originalText;
+            processBtn.style.backgroundColor = '';
+            processBtn.disabled = false;
+        }, 2000);
+        
         alert('Error processing data: ' + error.message);
     }
 }
@@ -291,12 +313,12 @@ function displayResults(result) {
     }
     
     // Format the results nicely
-    let output = 'Status: ' + result.status + '\n\n';
+    let output = 'Resultats';
     
-    if (result.received_data) {
-        output += 'Received Data:\n';
-        output += JSON.stringify(result.received_data, null, 2);
-    }
+    // if (result.received_data) {
+    //     output += 'Received Data:\n';
+    //     output += JSON.stringify(result.received_data, null, 2);
+    // }
     
     resultsContent.textContent = output;
     resultsSection.style.display = 'block';
@@ -330,7 +352,7 @@ function displayDataTable(dataDict, insertAfter) {
     }
     
     // Create table
-    let tableHtml = '<h3>Results Table</h3>';
+    let tableHtml = '';
     tableHtml += '<table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px;">';
     
     // Header row
