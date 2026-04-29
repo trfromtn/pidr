@@ -149,15 +149,12 @@ function updateGridData(row, col, value) {
     gridData[row][col] = value;
 }
 
-function parseAndLoadData() {
+function parseAndLoadData(text) {
     try {
-        const pasteArea = document.getElementById('pasteArea');
-        const text = pasteArea.value.trim();
-        
         console.log('Paste area text:', text);
         
         if (!text) {
-            alert('Please paste some data first');
+            alert('No data to parse');
             return;
         }
         
@@ -167,7 +164,7 @@ function parseAndLoadData() {
         console.log('Parsed rows:', rows);
         
         if (rows.length === 0) {
-            alert('No data could be parsed. Make sure to copy from Excel correctly.');
+            alert('No data could be parsed.');
             return;
         }
         
@@ -199,6 +196,22 @@ function parseAndLoadData() {
     } catch (error) {
         console.error('Error in parseAndLoadData:', error);
         alert('Error parsing data: ' + error.message);
+    }
+}
+
+async function pasteFromClipboard() {
+    try {
+        console.log('Attempting to read from clipboard...');
+        const text = await navigator.clipboard.readText();
+        console.log('Clipboard content:', text);
+        parseAndLoadData(text);
+    } catch (error) {
+        console.error('Error reading from clipboard:', error);
+        if (error.name === 'NotAllowedError') {
+            alert('Clipboard access denied. Please allow clipboard access in browser permissions.');
+        } else {
+            alert('Error reading clipboard: ' + error.message + '\n\nMake sure you copied data from Excel first.');
+        }
     }
 }
 

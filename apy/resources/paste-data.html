@@ -108,11 +108,10 @@
         <h1>Paste Excel Data</h1>
         
         <div class="section">
-            <h2>Step 1: Paste your Excel data here</h2>
-            <textarea id="pasteArea" placeholder="Paste data from Excel (Ctrl+V). Columns are separated by tabs, rows by line breaks."></textarea>
-            <button onclick="parseAndLoadData()">Load Data</button>
+            <h2>Step 1: Copy from Excel, then click "Paste from Clipboard"</h2>
+            <button onclick="pasteFromClipboard()" style="background-color: #2196F3; margin-top: 0;">📋 Paste from Clipboard</button>
             <button class="secondary" onclick="clearTable()">Clear Table</button>
-            <p class="info-text">💡 Copy cells from Excel and paste them above, then click "Load Data"</p>
+            <p class="info-text">💡 Copy any cells from Excel, then click "Paste from Clipboard" to load them</p>
         </div>
         
         <div class="section">
