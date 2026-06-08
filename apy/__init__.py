@@ -39,27 +39,4 @@ async def array(request: Request):
         "status": "success"
     }
 
-@app.post("/lyophilisation/test")
-async def test(request: Request):
-    debug = True
-
-    data: dict[str, list[int]] = await request.json()
-    if debug: print(type(data), data)
-    d = data.get("data")
-    if debug: print(type(d), d)
-    processed_data = matlabEngine.lyo(d)
-    if debug: print(type(processed_data), processed_data)
-    return {
-        # "received_data": processed_data,
-        "status": "success"
-    }
-
-
-@app.get("/matlab")
-async def matlab():
-    """matlab information for debug"""
-    return {
-        "current dir": matlabEngine.engine.cd(),
-        "PATH": matlabEngine.engine.path()
-    }
 
