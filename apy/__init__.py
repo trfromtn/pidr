@@ -1,5 +1,3 @@
-debug = 1
-
 from . import matlabEngine
 
 from fastapi import FastAPI, Form, Request
@@ -18,31 +16,26 @@ app.mount("/node_modules", StaticFiles(directory="node_modules"), name="node_mod
 async def root():
     return FileResponse("apy/resources/home.html")
 
-@app.get("/lyophilisation")
+@app.get("/lyo-handson")
 async def lyophilisation():
-    return FileResponse("apy/resources/lyophilisation.html")
+    return FileResponse("apy/resources/lyo-handson.html")
 
-@app.get("/paste-data")
+@app.get("/lyo-glide")
 async def paste_data():
     return FileResponse("apy/resources/paste-data.html")
 
 @app.post("/lyophilisation/array")
 async def array(request: Request):
-
-    if debug: print("===================== ARRAY =================")
-
+    """endpoint that receive data (POST request)"""
 
     data: dict[str, list[int]] = await request.json()
-    if debug: print("================ DATA", type(data), data)
     d = data.get("data")
-    if debug: print("================ D", type(d), d)
     processed_data = matlabEngine.lyo(d)
-    if debug: print("================ PROCESSED", type(processed_data), processed_data) # way too long
 
-    
+    matrix = [list(row) for row in processed_data]
 
     return {
-        "received_data": processed_data,
+        "received_data": matrix,
         "status": "success"
     }
 
@@ -60,13 +53,7 @@ async def test(request: Request):
         # "received_data": processed_data,
         "status": "success"
     }
-# @app.post("/lyophilisation/simulate")
-# async def simulate(Tshelf: str = Form()):
-#     Tshelf = float(Tshelf)
-#     return {
-#         "Tshelf": Tshelf,
-#         'matlab response': list(engine.basic_func(Tshelf)[0])
-#     }
+
 
 @app.get("/matlab")
 async def matlab():
