@@ -22,7 +22,7 @@ async def lyophilisation():
 
 @app.get("/lyo-glide")
 async def paste_data():
-    return FileResponse("apy/resources/paste-data.html")
+    return FileResponse("apy/resources/lyo-glide.html")
 
 @app.post("/lyophilisation/array")
 async def array(request: Request):
